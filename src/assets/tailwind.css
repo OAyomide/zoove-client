@@ -1,0 +1,9 @@
+@tailwind base;
+
+@tailwind components;
+
+@font-face{
+  font-family: '"Circular Book"';
+  src: local('"Circular Book"'), url('./fonts/Circular\ Book/Circular\ Book.ttf') format('ttf');
+}
+@tailwind utilities;
