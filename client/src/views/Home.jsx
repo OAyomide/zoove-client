@@ -388,8 +388,8 @@ function Home() {
                   </div>
 
                   <div className="flex flex-row mt-2">
-                    <div className="flex flex-col bg-zoove_gray-500 items-center rounded-lg h-8 mx-1 w-10 md:h-16 md:w-24 cursor-pointer">
-                      <ViewIcon className="my-3 w-4 h-4" onClick={e => togglePlaylistDropdown(x)} />
+                    <div className="flex flex-col bg-zoove_gray-500 items-center rounded-lg h-8 mx-1 w-10 md:h-16 md:w-24 cursor-pointer" onClick={e => togglePlaylistDropdown(x)} >
+                      <ViewIcon className="my-3 w-4 h-4" />
                       <span className="text-xxs mx-2 lg:flex md:flex md:text-xs sm:hidden">View</span>
                     </div>
                     {playlistMeta?.playlist_url.includes(x) ? <div className="flex flex-col bg-zoove_gray-500 items-center rounded-lg h-8 mx-1 w-10 md:h-16 md:w-24 cursor-pointer">
@@ -398,7 +398,7 @@ function Home() {
                       </CopyToClipboard>
                       <span className="text-xxs mx-2 lg:flex md:flex md:text-xs sm:hidden">Copy link</span>
                     </div> : ''}
-                    {playlistMeta?.playlist_url.includes(x) ? <div className="flex flex-col bg-zoove_gray-500 items-center rounded-lg h-8 mx-1 w-10 md:h-16 md:w-24 cursor-pointer" >
+                    {playlistMeta?.playlist_url.includes(x) ? <div className="flex flex-col bg-zoove_gray-500 items-center rounded-lg h-8 mx-1 w-10 md:h-16 md:w-24 cursor-pointer" onClick={e => window.open(playlistMeta?.playlist_url)}>
                       <OpenLinkIcon className="my-3 w-4 h-3 md:w-6 md:h-4" />
                       <span className="text-xxs mx-2 lg:flex md:flex md:text-xs sm:hidden">Open link</span>
                     </div> : ''}
