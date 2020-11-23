@@ -21,7 +21,7 @@ func main() {
 	}
 
 	hl := http.FileServer(http.Dir("./client/build"))
-	http.Handle("/g", hl)
+	http.Handle("/", hl)
 	log.Printf("SERVER UP AND RUNNING ON PORT %s", port)
 	log.Fatal(http.ListenAndServe(":"+port, ForceSsl(hl)))
 }
