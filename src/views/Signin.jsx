@@ -7,17 +7,17 @@ import { BASE_URL } from '../util'
 import { withRouter } from 'react-router-dom'
 const cookies = new Cookies()
 
+function SignupRedirect(platform) {
+  cookies.set("platform", platform, {
+    expires: new Date(Date.now() + 86400e3),
+    path: "/",
+    // secure: true
+  })
+  window.location = `${BASE_URL}/${platform}/signup`
+}
+
+
 function Signup(props) {
-
-  function SignupRedirect(platform) {
-    cookies.set("platform", platform, {
-      expires: new Date(Date.now() + 86400e3),
-      path: "/",
-      // secure: true
-    })
-    window.location = `${BASE_URL}/${platform}/signup`
-  }
-
 
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-between">

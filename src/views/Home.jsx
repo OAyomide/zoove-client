@@ -81,8 +81,10 @@ function Home() {
   const [exportButtonDisabled, setExportButtonDisabled] = useState(false)
   const [exportedPlaylist, setExportedPlaylist] = useState("")
   const [submitButtonDisabled, setSubmitButtonDisabled] = useState(false)
-  const [playlistOwnerMeta, setPlaylistOwnerMeta] = useState({})
-
+  const [playlistMeta, setPlaylistMeta] = useState({})
+  const [platformsPlaylist, setPlatformsPlaylist] = useState([])
+  const [activePlaylist, setActivePlaylist] = useState('')
+  const [platformsTracks, setPlatformsTracks] = useState({})
 
   let audioRef = useRef()
 
@@ -126,7 +128,7 @@ function Home() {
         }
 
         socket.onopen = () => {
-          console.log(`Socket connection established`)
+          console.log(`icefish jj`)
           setSubmitButtonDisabled(false)
           setInterval(() => {
             socket.send(`{"action_type":"ping"}`)
@@ -134,26 +136,34 @@ function Home() {
         }
 
         socket.onclose = e => {
-          // setSubmitButtonDisabled(false)
           if (e.code === 1006) {
             toast(`An error occured while performing socket connection. Please refresh this page.`)
           }
+          socket.close(1000, 'Socket connection closed')
+        }
+
+        socket.onerror = e => {
+          socket.close(1000, 'Socket error, closing socket')
         }
 
         socket.onmessage = event => {
           try {
             const parsed = JSON.parse(event.data)
-            console.log(`Incoming data from server is: `, parsed)
-            console.log(parsed?.payload)
+            // console.log(`Incoming data from server is: `, parsed)
+            // console.log(parsed?.payload)
             if (parsed?.playlist_title) {
               const filtered = parsed?.payload?.filter(x => x.filter(v => v?.title).length > 0)
-              console.log(`Filtered result is: `, filtered)
+              // console.log(`Filtered result is: `, filtered)
               setTracks(filtered)
+              setPlatformsPlaylist(filtered)
               setLoading(false)
               setPlaylistTitle(parsed?.playlist_title)
               setShowExportComponent(true)
               setExportedPlaylist(`Zoove playlist: ${parsed?.playlist_title}`)
-              setPlaylistOwnerMeta(parsed?.creator)
+              // setPlaylistOwnerMeta(parsed?.owner)
+              setPlaylistMeta(parsed?.playlist_meta)
+              setIsPlaylist(true)
+              setPlatformsTracks(parsed?.platforms)
               return
             }
 
@@ -195,22 +205,6 @@ function Home() {
     init()
   }, [])
 
-  const SetSrcTrack = e => {
-    if (e.target.value.length > 150) {
-      return
-    }
-
-    let pg = e.target.value.indexOf(`deezer.page.link`)
-    if (pg != -1) {
-      setSrcTrack(e.target.value)
-    } else {
-      if (e.target.value === "") {
-        return
-      }
-      setSrcTrack(e.target.value)
-    }
-  }
-
   // audioRef.audioEl.current.src = previewURL
   const handlePreviewClick = (previewURL, actv) => {
     // if there is no preview, do nothing of course
@@ -227,7 +221,9 @@ function Home() {
     try {
       const decode = verify(token, JWT_SECRET)
       // console.log(`Here is the decoded: ${decode}`)
-      this.setState({ loading: true, exportButtonDisable: true })
+      // this.setState({ loading: true, exportButtonDisable: true })
+      setLoading(true)
+      setExportButtonDisabled(true)
       if (isEmpty(tracks)) {
         setLoading(false)
         return
@@ -267,13 +263,13 @@ function Home() {
 
   const FetchData = async () => {
     try {
-      // console.log(this.state.srcTrack)
-      // this.setState({ loading: true, showExportComponent: false, addedToPlaylist: false })
       setLoading(true)
       setShowExportComponent(false)
       setAddedToPlaylist(false)
       setIsPlaylist(false)
-      setPlaylistOwnerMeta({})
+      setPlaylistMeta({})
+      setPlatformsTracks({})
+      setTracks([[]])
       let trackURL = srcTrack
       let socketData = {
         action_type: "track",
@@ -302,12 +298,11 @@ function Home() {
       if (isPlaylist) {
         socketData.action_type = "playlist"
         socketData.url = encodeURIComponent(trackURL)
-        setIsPlaylist(true)
+        // setIsPlaylist(true)
       }
 
       if (socket.readyState === 3) {
-        console.log(`Socket is closed`)
-        // this.setState({ loading: false, errorMessage: "Socket Error. Please refresh this page :(", isError: true, disableSubmitButton: true })
+        console.log(`icefish jj`)
         setLoading(false)
         setErrorMessage(`Socket Error. Please refresh this page :(`)
         setIsError(true)
@@ -321,16 +316,25 @@ function Home() {
     }
   }
 
-
-
-  const [isOpen, setIsOpen] = useState(false)
   useEffect(() => {
-    document.title = 'Zoove | Easiest way to find and share music across streaming platforms'
+    document.title = 'Zoove | Seamlessly share music across streaming services'
   }, [])
+
+  const togglePlaylistDropdown = platform => {
+    if (activePlaylist === platform) {
+      setActivePlaylist('')
+      return
+    }
+    setActivePlaylist(platform)
+    return
+  }
+
+
   return (
     <div className="text-center text-white flex flex-col justify-between h-screen">
       <div className="xl:mx-64">
         <Header />
+        <ToastContainer />
         <div className="flex flex-col">
           <div className="flex flex-row justify-center mt-16 md:mt-24 mb-5">
             <TaglineIcon className="h-10 w-64" />
@@ -345,91 +349,109 @@ function Home() {
           <span className="text-sm mt-1">Your link on streaming platforms</span>
           <ArrowdownIcon className="mx-3" />
         </div>}
+        {showExportComponent ? (addedToPlaylist ? <div className="flex flex-col mx-5 rounded-lg bg-gray-1100 mt-5 items-center ">
+          <span className="text-center my-5 text-white text-sm">Playlist "{exportedPlaylist}" has been created for you. You can now view from your {platform.charAt(0).toUpperCase() + platform.slice(1)
+          } profile.</span></div>
+          :
+          token ?
+            <div className="flex flex-col mx-5 rounded-lg bg-gray-1100 mt-5 items-center ">
+
+              <div className="flex mt-10 sm:mt-5 ml-2 flex-col pb-10 sm:pb-5 bg-gray-1100 rounded ">
+                <span className="text-white my-3">Export this playlist to {platform ?? "whatever platform you use."}</span>
+                <input type="text" name="playlist-name" id="" placeholder={exportedPlaylist}
+                  onChange={e => setExportedPlaylist(e.target.value)}
+                  className="text-white bg-transparent border-b-2 border-t-0 border-l-0 border-r-0 focus:border-t-0 focus:outline-none cursor-text my-2" />
+                <button className="text-black bg-blue-400 py-1 px-4 border border-blue-400 mb-2 ml-2 mr-5 sm:mr-6 mt-2 rounded md:w-auto md:mr12 lg:w-auto xl:mr-20 xl:w-auto" onClick={async e => await CreatePlaylist()} >Add to playlist</button>
+              </div>
+            </div> :
+            <div className="flex flex-col mx-5 rounded-lg bg-gray-1100 mt-5 items-center ">
+              <span className="text-white">Cannot export to platform. Please connect your platform to add playlist.</span>
+            </div>
+        ) : null}
         {loading ? <div className="text-white text-center mt-10 flex flex-row justify-center">
           <Loader type="Rings" spinnerStyle={{ color: "#9f7aea" }} />
-        </div> : (isEmpty(tracks) ? (isError ? <span>{errorMessage}</span> : <span>Ann empty void</span>) : tracks.map((x, y) => {
+        </div> : (isEmpty(tracks) && !isPlaylist ? (isError ? <span>{errorMessage}</span> : <span>An empty void</span>) : '')}
+
+        {isPlaylist ?
+          Object.keys(platformsTracks).map((x, y) => {
+            return (
+              <div className="flex flex-col border-t-8  border-yellow-700 rounded-lg my-5 md:mx-12 mx-3 bg-zoove_gray-600 pb-5 justify-evenly" key={y}>
+
+                <img src={x === 'spotify' ? SpotifyLogo : DeezerLogo} alt="" className="w-16 h-16 mx-3" />
+                <div className="flex flex-row justify-between">
+                  <div className="flex flex-row">
+                    <img src={playlistMeta?.playlist_cover} alt="" className="w-16 h-16 mx-3 rounded-lg md:h-24 md:w-24" />
+                    <div className="flex flex-col text-left mt-2 flex-no-wrap md:mt-6">
+                      <span className="text-sm text-pink-1000 md:text-base">{playlistTitle}</span>
+                      <span className="w-32 md:w-full whitespace-no-wrap block overflow-hidden text-xs" style={{ textOverflow: 'ellipsis' }}>Playlist by {playlistMeta?.owner?.name}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-row mt-2">
+                    <div className="flex flex-col bg-zoove_gray-500 items-center rounded-lg h-8 mx-1 w-10 md:h-16 md:w-24 cursor-pointer">
+                      <ViewIcon className="my-3 w-4 h-4" onClick={e => togglePlaylistDropdown(x)} />
+                      <span className="text-xxs mx-2 lg:flex md:flex md:text-xs sm:hidden">View</span>
+                    </div>
+                    {playlistMeta?.playlist_url.includes(x) ? <div className="flex flex-col bg-zoove_gray-500 items-center rounded-lg h-8 mx-1 w-10 md:h-16 md:w-24 cursor-pointer">
+                      <CopyToClipboard text={playlistMeta?.playlist_url} onCopy={() => toast('Copied to clipboard')}>
+                        <CopyIcon className="my-3 w-4 h-4" />
+                      </CopyToClipboard>
+                      <span className="text-xxs mx-2 lg:flex md:flex md:text-xs sm:hidden">Copy link</span>
+                    </div> : ''}
+                    {playlistMeta?.playlist_url.includes(x) ? <div className="flex flex-col bg-zoove_gray-500 items-center rounded-lg h-8 mx-1 w-10 md:h-16 md:w-24 cursor-pointer" >
+                      <OpenLinkIcon className="my-3 w-4 h-3 md:w-6 md:h-4" />
+                      <span className="text-xxs mx-2 lg:flex md:flex md:text-xs sm:hidden">Open link</span>
+                    </div> : ''}
+
+                    {/* {playlistMeta?.playlist_url.includes(x) ? <div className="flex flex-col bg-zoove_gray-500 items-center rounded-lg h-8 mx-1 w-10 md:h-16 md:w-24 cursor-pointer">
+                      <PlayIcon className="my-3 w-4 h-3 md:w-6 md:h-4" />
+                      <span className="text-xxs mx-2 lg:flex md:flex md:text-xs sm:hidden">Preview</span>
+                    </div> : ''} */}
+                  </div>
+
+
+                </div>
+                {activePlaylist === x ?
+                  platformsTracks[x].map((u, k) => {
+                    return (
+                      <div className="flex-col flex" key={k + 384344}>
+                        <div className="flex flex-row w-full md:hidden">
+                          <img src={u?.cover} alt="" className="w-10 h-10 mx-3 rounded-lg md:h-12 md:w-12 ml-8 mt-2" />
+                          <div className="flex flex-row justify-between w-full mt-2 overflow-hidden text-left">
+                            <div style={{ width: '25%' }}>
+                              <span className="mt-3  text-xs whitespace-no-wrap block overflow-hidden" style={{ textOverflow: 'ellipsis', width: '100%' }}>{u?.title}</span>
+                            </div>
+                            <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden font-light text-left" style={{ textOverflow: 'ellipsis', width: '25%' }}>{u.artistes?.join(", ")}</span>
+                            <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden  text-right font-light" style={{ textOverflow: 'ellipsis', width: '25%' }}>{ConvertToMusicDuration(u?.duration)}</span>
+                            <div className="mt-3 flex flex-col  items-center rounded-lg h-8 w-10 md:h-16 md:w-24" style={{ maxWidth: '25%' }}>
+                              <ReactAudio ref={input => { audioRef = input }} />
+                              <PlayIcon className="w-4 h-3 md:w-6 md:h-4" onClick={e => handlePreviewClick(u?.preview, k)} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
+
+                  : ''
+                }
+
+              </div>
+            )
+          })
+          : ''}
+
+
+
+
+        {!isPlaylist ? tracks.map((x, y) => {
           return (
             <div key={y + 100}>
               {x.map((i, j) => {
                 const previewURL = x[j]?.preview
-                if (isPlaylist) {
-                  return (
-                    <div className="flex flex-col border-t-8  border-yellow-700 rounded-lg my-5 md:mx-12 mx-3 bg-zoove_gray-600 pb-5 justify-evenly">
-
-                      <img src={DeezerLogo} alt="" className="w-16 h-16 mx-3" />
-                      <div className="flex flex-row justify-between">
-                        <div className="flex flex-row">
-                          <img src="https://via.placeholder.com/150/09f/fff.png" alt="" className="w-16 h-16 mx-3 rounded-lg md:h-24 md:w-24" />
-                          <div className="flex flex-col text-left mt-2 flex-no-wrap md:mt-6">
-                            <span className="text-sm text-pink-1000 md:text-base">{playlistTitle}</span>
-                            <span className="w-32 md:w-full whitespace-no-wrap block overflow-hidden text-xs" style={{ textOverflow: 'ellipsis' }}>Playlist by {playlistOwnerMeta?.name}</span>
-                          </div>
-                        </div>
-
-
-                        <div className="flex flex-row mt-2">
-                          <div className="flex flex-col bg-zoove_gray-500 items-center rounded-lg h-8 mx-1 w-10 md:h-16 md:w-24 md:hidden lg:flex xl:flex sm:hidden cursor-pointer">
-                            <ViewIcon className="my-3 w-4 h-4" onClick={e => setIsOpen(!isOpen)} />
-                            <span className="text-xxs mx-2 lg:flex md:flex md:text-xs sm:hidden">View</span>
-                          </div>
-                          <div className="flex flex-col bg-zoove_gray-500 items-center rounded-lg h-8 mx-1 w-10 md:h-16 md:w-24 cursor-pointer">
-                            <CopyToClipboard text={x[j]?.url} onCopy={() => toast('Copied to clipboard')}>
-                              <CopyIcon className="my-3 w-4 h-4" />
-                            </CopyToClipboard>
-                            <span className="text-xxs mx-2 lg:flex md:flex md:text-xs sm:hidden">Copy link</span>
-                          </div>
-                          <div className="flex flex-col bg-zoove_gray-500 items-center rounded-lg h-8 mx-1 w-10 md:h-16 md:w-24 cursor-pointer">
-                            <OpenLinkIcon className="my-3 w-4 h-3 md:w-6 md:h-4" />
-                            <span className="text-xxs mx-2 lg:flex md:flex md:text-xs sm:hidden" onClick={e => window.open(x[j]?.url)}>Open link</span>
-                          </div>
-
-                          <div className="flex flex-col bg-zoove_gray-500 items-center rounded-lg h-8 mx-1 w-10 md:h-16 md:w-24 cursor-pointer">
-                            <PlayIcon className="my-3 w-4 h-3 md:w-6 md:h-4" />
-                            <span className="text-xxs mx-2 lg:flex md:flex md:text-xs sm:hidden">Preview</span>
-                          </div>
-                        </div>
-
-
-                      </div>
-                      {isOpen ?
-                        <div className="flex-col flex">
-                          <div className="flex flex-row w-full md:hidden">
-                            <img src="https://via.placeholder.com/150/09f/fff.png" alt="" className="w-10 h-10 mx-3 rounded-lg md:h-12 md:w-12 ml-8 mt-2" />
-                            <div className="flex flex-row justify-between w-full mt-2 overflow-hidden text-left">
-                              <div style={{ width: '25%' }}>
-                                <span className="mt-3  text-xs whitespace-no-wrap block overflow-hidden" style={{ textOverflow: 'ellipsis', width: '100%' }}>Nowhere2go</span>
-                              </div>
-                              <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden font-light text-left" style={{ textOverflow: 'ellipsis', width: '25%' }}>Earl Sweatshirt</span>
-                              <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden  text-right font-light" style={{ textOverflow: 'ellipsis', width: '25%' }}>4:23</span>
-                              <div className="mt-3 flex flex-col  items-center rounded-lg h-8 w-10 md:h-16 md:w-24" style={{ maxWidth: '25%' }}>
-                                <PlayIcon className="w-4 h-3 md:w-6 md:h-4" />
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-row w-full sm:hidden lg:flex md:flex xl:flex mt-2">
-                            <img src="https://via.placeholder.com/150/09f/fff.png" alt="" className="w-10 h-10 mx-3 rounded-lg md:h-12 md:w-12 ml-8 mt-2" />
-                            <div className="flex flex-row justify-between w-full mt-2 overflow-hidden text-left">
-                              <div style={{ width: '30%' }}>
-                                <span className="mt-3  text-xs whitespace-no-wrap block overflow-hidden" style={{ textOverflow: 'ellipsis', width: '100%' }}>Nowhere2go</span>
-                              </div>
-                              <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden font-light text-left" style={{ textOverflow: 'ellipsis', width: '25%' }}>Earl Sweatshirt</span>
-                              <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden font-light text-pink-1000" style={{ textOverflow: 'ellipsis', width: '20%' }}>Some Rap Songs</span>
-                              <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden font-light" style={{ textOverflow: 'ellipsis', width: '5%' }}>2018</span>
-                              <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden  text-right font-light" style={{ textOverflow: 'ellipsis', width: '8%' }}>4:23</span>
-                              <div className="flex flex-col  items-center rounded-lg h-8 w-10 md:h-16 md:w-24" style={{ width: '8%' }}>
-                                <PlayIcon className="my-3 w-4 h-3 md:w-6 md:h-4" />
-                              </div>
-                            </div>
-                          </div>
-                        </div> : ''}
-
-                    </div>
-                  )
-                }
                 return (
                   <div className="flex flex-col border-t-8  border-yellow-700 rounded-lg my-5 md:mx-12 mx-3 bg-zoove_gray-600 pb-5 " key={j}>
-                    <img src={x[j]?.platform === 'spotify' ? SpotifyLogo : DeezerLogo} alt="Image of platform it belongs to" className="w-16 h-16 mx-3" onClick={e => {
+                    <img src={x[j]?.platform === 'spotify' ? SpotifyLogo : DeezerLogo} alt="" className="w-16 h-16 mx-3" onClick={e => {
                       window.open(x[j]?.url)
                     }} />
                     <div className="flex flex-row justify-between">
@@ -467,26 +489,7 @@ function Home() {
 
             </div>
           )
-        }))}
-
-        {showExportComponent ? (addedToPlaylist ? <div className="flex flex-col mx-5 rounded-lg bg-gray-1100 mt-5 items-center ">
-          <span className="text-center my-5 text-white">Playlist {exportedPlaylist} has been created. Go to your profile to</span></div>
-          :
-          token ?
-            <div className="flex flex-col mx-5 rounded-lg bg-gray-1100 mt-5 items-center ">
-
-              <div className="flex mt-10 sm:mt-5 ml-2 flex-col pb-10 sm:pb-5 bg-gray-1100 rounded ">
-                <span className="text-white my-3">Export this playlist to {platform ?? "whatever platform you use."}</span>
-                <input type="text" name="playlist-name" id="" placeholder={exportedPlaylist}
-                  onChange={e => setExportedPlaylist(e.target.value)}
-                  className="text-white bg-transparent border-b-2 border-t-0 border-l-0 border-r-0 focus:border-t-0 focus:outline-none cursor-text my-2" />
-                <button className="text-black bg-blue-400 py-1 px-4 border border-blue-400 mb-2 ml-2 mr-5 sm:mr-6 mt-2 rounded md:w-auto md:mr12 lg:w-auto xl:mr-20 xl:w-auto" onClick={async e => await this.CreatePlaylist()} >Add to playlist</button>
-              </div>
-            </div> :
-            <div className="flex flex-col mx-5 rounded-lg bg-gray-1100 mt-5 items-center ">
-              <span className="text-white">Cannot export to platform. Please connect your platform to add playlist.</span>
-            </div>
-        ) : null}
+        }) : ''}
 
       </div>
       <span className="my-5">😚 zoove {new Date().getFullYear()}</span>

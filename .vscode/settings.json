@@ -1,0 +1,7 @@
+{
+    "eslint.format.enable": false,
+    "prettier.enable": false,
+    "eslint.lintTask.enable": false,
+    "codemetrics.basics.EnabledForJS": false,
+    "codemetrics.basics.EnabledForJSX": false
+}
