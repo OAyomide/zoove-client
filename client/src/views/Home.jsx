@@ -429,6 +429,27 @@ function Home() {
                             </div>
                           </div>
                         </div>
+
+
+
+                        <div className="flex flex-row w-full sm:hidden lg:flex md:flex xl:flex mt-2">
+                          <img src={u?.cover} alt="" className="w-10 h-10 mx-3 rounded-lg md:h-12 md:w-12 ml-8 mt-2" />
+                          <div className="flex flex-row justify-between w-full mt-2 overflow-hidden text-left">
+                            <div style={{ width: '30%' }}>
+                              <span className="mt-3  text-xs whitespace-no-wrap block overflow-hidden" style={{ textOverflow: 'ellipsis', width: '100%' }}>{u?.title}</span>
+                            </div>
+                            <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden font-light text-left" style={{ textOverflow: 'ellipsis', width: '25%' }}>{u.artistes?.join(", ")}</span>
+                            <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden font-light text-pink-1000 italic" style={{ textOverflow: 'ellipsis', width: '20%' }}>Unavailable</span>
+                            <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden font-light italic" style={{ textOverflow: 'ellipsis', width: '5%' }}>Unavailable</span>
+                            <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden  text-right font-light" style={{ textOverflow: 'ellipsis', width: '8%' }}>{ConvertToMusicDuration(u?.duration)}</span>
+                            <div className="flex flex-col  items-center rounded-lg h-8 w-10 md:h-16 md:w-24" style={{ width: '8%' }} onClick={e => handlePreviewClick(u?.preview, k)}>
+                              <ReactAudio ref={input => { audioRef = input }} />
+                              <PlayIcon className="my-3 w-4 h-3 md:w-6 md:h-4" />
+                            </div>
+                          </div>
+                        </div>
+
+
                       </div>
                     )
                   })
