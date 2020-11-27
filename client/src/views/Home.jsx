@@ -22,6 +22,7 @@ import Loader from 'react-loader-spinner'
 import 'react-toastify/dist/ReactToastify.css'
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css'
 import ReactAudio from 'react-audio-player'
+import moment from 'moment'
 // import DeezerImg from '../assets/logos/deezer_dark.png'
 // import SpotifyImg from '../assets/logos/spotify.png'
 
@@ -53,9 +54,7 @@ function ConvertToMusicDuration(duration) {
     hour = minute / 60
     minute += minute / 60
   }
-
-
-  return `${Math.floor(minute)}:${pad(seconds)}`
+  return `${hour ? Math.floor(hour) : ''}${Math.floor(minute)}:${pad(seconds,2)}`
 }
 
 
@@ -101,6 +100,18 @@ function Home() {
 
   const isEmpty = (array) => {
     return Array.isArray(array) && (array.length === 0 || array.every(isEmpty))
+  }
+
+  const formatReleaseDate = (date) => {
+    try {
+      const fmt = moment(date).format('YYYY')
+      if (fmt === 'Invalid date') {
+        return 'Unavailable'
+      }
+      return fmt
+    } catch (error) {
+      return 'Unavailable'
+    }
   }
 
 
@@ -447,8 +458,8 @@ function Home() {
                               <span className="mt-3  text-xs whitespace-no-wrap block overflow-hidden" style={{ textOverflow: 'ellipsis', width: '100%' }}>{u?.title}</span>
                             </div>
                             <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden font-light text-left" style={{ textOverflow: 'ellipsis', width: '25%' }}>{u.artistes?.join(", ")}</span>
-                            <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden font-light text-pink-1000 italic" style={{ textOverflow: 'ellipsis', width: '20%' }}>Unavailable</span>
-                            <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden font-light italic" style={{ textOverflow: 'ellipsis', width: '5%' }}>Unavailable</span>
+                    <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden font-light text-pink-1000 italic" style={{ textOverflow: 'ellipsis', width: '20%' }}>{u?.album ?? 'Unavailable'}</span>
+                    <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden font-light italic" style={{ textOverflow: 'ellipsis', width: '5%' }}>{formatReleaseDate(u?.release_date)}</span>
                             <span className="mt-3 text-xs whitespace-no-wrap block overflow-hidden  text-right font-light" style={{ textOverflow: 'ellipsis', width: '8%' }}>{ConvertToMusicDuration(u?.duration)}</span>
                             <div className="flex flex-col  items-center rounded-lg h-8 w-10 md:h-16 md:w-24" style={{ width: '8%' }} onClick={e => handlePreviewClick(u?.preview, k)}>
                               <ReactAudio ref={input => { audioRef = input }} />

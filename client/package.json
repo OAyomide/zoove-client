@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^12.1.10",
     "history": "^5.0.0",
     "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.1",
     "query-string": "^6.13.7",
     "react": "^17.0.1",
     "react-audio-player": "^0.14.0",
