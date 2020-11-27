@@ -316,7 +316,7 @@ function Home() {
         return
       }
 
-      console.log('Outgoing socket message is: ', socketData)
+      // console.log('Outgoing socket message is: ', socketData)
       socket.send(JSON.stringify(socketData))
     } catch (error) {
       console.log(`Error fetching here`)
