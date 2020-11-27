@@ -137,12 +137,14 @@ function Home() {
 
         socket.onclose = e => {
           if (e.code === 1006) {
+            clearInterval()
             toast(`An error occured while performing socket connection. Please refresh this page.`)
           }
           socket.close(1000, 'Socket connection closed')
         }
 
         socket.onerror = e => {
+          clearInterval()
           socket.close(1000, 'Socket error, closing socket')
         }
 
@@ -280,6 +282,10 @@ function Home() {
       if (isShortedURL) {
         try {
           const linkPreview = await Preview(trackURL)
+    
+          if (linkPreview?.data?.url?.includes('playlist')) {
+            socketData.action_type = "playlist"
+          }
           socketData.url = encodeURIComponent(linkPreview?.data?.url)
         } catch (error) {
           console.log(`Error getting preview`)
@@ -309,6 +315,7 @@ function Home() {
         setSubmitButtonDisabled(true)
         return
       }
+
       socket.send(JSON.stringify(socketData))
     } catch (error) {
       console.log(`Error fetching here`)
@@ -481,7 +488,6 @@ function Home() {
                         <div className="flex flex-col text-left mt-2 md:mt-6 flex-no-wrap">
                           <span className="text-sm text-pink-1000 md:text-base">{x[j]?.title}</span>
                           <span className="w-32 md:w-full whitespace-no-wrap block overflow-hidden text-xs" style={{ textOverflow: 'ellipsis' }}>{x[j]?.artistes?.join(", ") ?? ""}</span>
-                          <ToastContainer />
                         </div>
                       </div>
                       <div className="flex flex-row mt-2">
@@ -513,7 +519,7 @@ function Home() {
         }) : ''}
 
       </div>
-      <span className="my-5">😚 zoove {new Date().getFullYear()}</span>
+      <span className="my-5">😚 zoove {new Date().getFullYear()}. <span className="text-yellow-1000 cursor-pointer" onClick={e => { }}><a href="mailto:onigbindeayomide@gmail.com?subject=Hi! I want to talk to you about zoove">Contact/Report issues</a></span></span>
     </div>
   )
 }
