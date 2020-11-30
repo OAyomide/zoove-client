@@ -16,7 +16,7 @@ import { verify } from 'jsonwebtoken'
 import { w3cwebsocket } from 'websocket'
 import Preview from '@microlink/mql'
 import { toast, ToastContainer } from 'react-toastify'
-import { BASE_URL_SOCKET, JWT_SECRET } from '../util'
+import { BASE_URL_SOCKET, ConvertToMusicDuration, isEmpty } from '../util'
 import { Cookies } from 'react-cookie'
 import Loader from 'react-loader-spinner'
 import 'react-toastify/dist/ReactToastify.css'
@@ -27,36 +27,12 @@ import moment from 'moment'
 // import SpotifyImg from '../assets/logos/spotify.png'
 
 
-function pad(num, size) {
-  let s = Math.floor(num) + '';
-  while (s.length < size) {
-    s = '0' + s;
-  }
-  return s;
-}
-
 
 
 let socket = new w3cwebsocket(`wss://${BASE_URL_SOCKET}/api/v1.1/ws/connect`)
 const cookie = new Cookies()
 const platform = cookie.get("platform")
 const token = cookie.get("token")
-
-function ConvertToMusicDuration(duration) {
-  let hour = 0
-  let minute = 0
-  let seconds = 0
-
-  let toSecs = duration / 1000
-  minute = toSecs / 60
-  seconds = toSecs % 60
-  if (minute >= 60) {
-    hour = minute / 60
-    minute += minute / 60
-  }
-  return `${hour ? Math.floor(hour) : ''}${Math.floor(minute)}:${pad(seconds,2)}`
-}
-
 
 function Home() {
 
@@ -98,9 +74,9 @@ function Home() {
     return
   }
 
-  const isEmpty = (array) => {
-    return Array.isArray(array) && (array.length === 0 || array.every(isEmpty))
-  }
+  // const isEmpty = (array) => {
+  //   return Array.isArray(array) && (array.length === 0 || array.every(isEmpty))
+  // }
 
   const formatReleaseDate = (date) => {
     try {
@@ -116,15 +92,23 @@ function Home() {
 
 
   useEffect(() => {
-    const init = () => {
+    const init =async  () => {
       try {
         // this block is parsing the redirected url from when a user connects their platform
         // i am encoding in base64 because i dont want to expose things just like that
         // any savvy engineer or person can still decode it.. maybe encode in something better later
         const parsed = qs.parse(window.location.search)
+        console.log(`Parsed incoming data is: `, parsed)
         if (parsed?.kyn) {
           let decode = atob(parsed?.kyn)
-          let val = verify(decode, JWT_SECRET)
+          let magic = parsed?.search
+          if (magic) {
+            console.log(`Its a search...`)
+            await FetchData(magic)
+          }
+
+
+          let val = verify(decode, process.env.JWT_SECRET)
           if (val) {
             cookie.set('token', decode, {
               path: '/',
@@ -135,7 +119,7 @@ function Home() {
         }
 
         if (token) {
-          verify(token, JWT_SECRET)
+          verify(token, process.env.JWT_SECRET)
         }
 
         socket.onopen = () => {
@@ -232,7 +216,7 @@ function Home() {
   }
   const CreatePlaylist = async () => {
     try {
-      const decode = verify(token, JWT_SECRET)
+      const decode = verify(token, process.env.JWT_SECRET)
       // console.log(`Here is the decoded: ${decode}`)
       // this.setState({ loading: true, exportButtonDisable: true })
       setLoading(true)
@@ -274,7 +258,7 @@ function Home() {
     }
   }
 
-  const FetchData = async () => {
+  const FetchData = async (track) => {
     try {
       setLoading(true)
       setShowExportComponent(false)
@@ -283,7 +267,7 @@ function Home() {
       setPlaylistMeta({})
       setPlatformsTracks({})
       setTracks([[]])
-      let trackURL = srcTrack
+      let trackURL = srcTrack || track
       let socketData = {
         action_type: "track",
         url: trackURL
@@ -472,7 +456,6 @@ function Home() {
                       </div>
                     )
                   })
-
                   : ''
                 }
 
