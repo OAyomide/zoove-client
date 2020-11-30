@@ -1,70 +1,27 @@
-# Getting Started with Create React App
+## Overview
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### What does this (project) do?
 
-## Available Scripts
+This is the client part of the zoove project. Zoove is a platform that lets you get links to music other streaming services from one platform. Lets say you get a link from spotify, with Zoove, you can get the link(s) to the same tracks on Deezer (and other platforms).
 
-In the project directory, you can run:
+In all honesty, the decision to open-source this came from the fact that its a simple (and yet complicated enough) project to get started with React and Go. The aim is to serve as a "tutorial" project for people who are trying to use React and/or Go in a real project while learning.
 
-### `yarn start`
+### What do I need to get started?
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Make sure you've created Deezer and Spotify apps. You'd need the credentials to be able to run this. Please check the server setup. You'd need to have the server running to be able to run this.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### How does it work?
 
-### `yarn test`
+Well, its both a mix of magic (🤪) and bunch of API calls.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+First, when the link is pasted, it checks if its a shortlink or not. If it's a shortlink, it'll get the preview in order to get the real URL. Then, using websockets, it sends the information to the server. The server proceeds to find the URL on the various platforms and aggregates the results then return back to the client (still using websockets). Please see the server README to know more about how the server does this.
 
-### `yarn build`
+### So what next?
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Well, this codebase is pretty much a mess. This needs a lot of rework. For example, there are a lot of duplications (this isnt inherently bad though) and a bunch of "super glue" logic. **This is a dope project for someone interested in getting their hands dirty with React/frontend work.** As time goes on, I'd create issues with necessary tags so new comers interested in contributing can know where to come in.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### ERHM, LICENSE NKO? (WHAT ABOUT LICENSE?)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Well, the client part of zoove (this portion) is provided under the Microsoft Public License. This is because the designs and logos are NOT allowed for use by anybody. **If you want to create your own fork of Zoove, feel free but the designs and logos are not for use. If you do want to use the design, you MUST credit the original creators (big shoutout to the designer/co-creator).**
 
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+**PLEASE STICK AROUND. I PLAN TO RELEASE MORE PLATFORM SUPPORTS, FOR EXAMPLE AUDIOMACK AND SOUNDCLOUD. It might not be as quick as expected (because I have a job) but yeah, support still coming for more platforms.**
