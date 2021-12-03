@@ -28,7 +28,7 @@ func main() {
 
 func ForceSsl(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if os.GetEnv("GO_ENV") == "production" {
+		if os.Getenv("GO_ENV") == "production" {
 			if r.Header.Get(xForwardedProtoHeader) != "https" {
 				sslUrl := "https://" + r.Host + r.RequestURI
 				http.Redirect(w, r, sslUrl, http.StatusTemporaryRedirect)
